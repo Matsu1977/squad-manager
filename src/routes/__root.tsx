@@ -11,6 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AppSidebar } from "@/components/app-sidebar";
+import { MobileNav } from "@/components/mobile-nav";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 function NotFoundComponent() {
   return (
@@ -77,11 +80,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Team Manager — Gestione Squadra di Calcio" },
+      {
+        name: "description",
+        content:
+          "Gestisci giocatori, formazioni, partite e allenamenti della tua squadra di calcio amatoriale.",
+      },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      {
+        property: "og:title",
+        content: "Team Manager — Gestione Squadra di Calcio",
+      },
+      {
+        property: "og:description",
+        content:
+          "Gestisci giocatori, formazioni, partite e allenamenti della tua squadra di calcio amatoriale.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -119,8 +133,21 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <div className="flex flex-1 flex-col">
+            <header className="flex h-14 items-center border-b px-4 md:hidden">
+              <SidebarTrigger />
+              <span className="ml-3 font-semibold">Team Manager</span>
+            </header>
+            <main className="flex-1 p-4 pb-24 md:p-6">
+              <Outlet />
+            </main>
+          </div>
+          <MobileNav />
+        </div>
+      </SidebarProvider>
     </QueryClientProvider>
   );
 }
