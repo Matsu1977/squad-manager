@@ -95,42 +95,32 @@ export function PlayerForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>Ruolo</Label>
-          <Select
-            defaultValue={form.getValues("role")}
-            onValueChange={(value) => form.setValue("role", value as PlayerRole)}
+          <Label htmlFor="role">Ruolo</Label>
+          <select
+            id="role"
+            {...form.register("role")}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PLAYER_ROLES.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {PLAYER_ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="space-y-2">
-          <Label>Stato</Label>
-          <Select
-            defaultValue={form.getValues("status")}
-            onValueChange={(value) =>
-              form.setValue("status", value as PlayerStatus)
-            }
+          <Label htmlFor="status">Stato</Label>
+          <select
+            id="status"
+            {...form.register("status")}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PLAYER_STATUSES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {PLAYER_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
