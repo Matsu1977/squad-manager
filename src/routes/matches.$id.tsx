@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2, ArrowLeft } from "lucide-react";
@@ -23,17 +23,8 @@ export const Route = createFileRoute("/matches/$id")({
   head: () => ({ meta: [{ title: "Dettaglio partita — Team Manager" }] }),
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(matchQueryOptions(params.id)),
-  component: MatchDetailRoute,
+  component: MatchDetail,
 });
-
-function MatchDetailRoute() {
-  const location = useLocation();
-  // If we are on the /edit child route, render its outlet only.
-  if (location.pathname.endsWith("/edit")) {
-    return <Outlet />;
-  }
-  return <MatchDetail />;
-}
 
 function MatchDetail() {
   const { id } = Route.useParams();
