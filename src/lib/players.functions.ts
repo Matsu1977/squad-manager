@@ -17,6 +17,16 @@ const playerStatusSchema = z.enum([
   "Inattivo",
 ]);
 
+const preferredFootSchema = z.enum(["Destro", "Sinistro", "Ambidestro"]);
+
+const ratingSchema = z.coerce
+  .number()
+  .int()
+  .min(1)
+  .max(100)
+  .optional()
+  .nullable();
+
 const playerSchema = z.object({
   first_name: z.string().min(1, "Il nome è obbligatorio"),
   last_name: z.string().min(1, "Il cognome è obbligatorio"),
@@ -28,6 +38,15 @@ const playerSchema = z.object({
   photo_url: z.string().url().optional().nullable(),
   status: playerStatusSchema,
   notes: z.string().optional().nullable(),
+  height_cm: z.coerce.number().int().min(100).max(250).optional().nullable(),
+  weight_kg: z.coerce.number().int().min(30).max(200).optional().nullable(),
+  preferred_foot: preferredFootSchema.optional().nullable(),
+  rating_pace: ratingSchema,
+  rating_shooting: ratingSchema,
+  rating_passing: ratingSchema,
+  rating_dribbling: ratingSchema,
+  rating_defending: ratingSchema,
+  rating_physical: ratingSchema,
 });
 
 type PlayerInput = z.infer<typeof playerSchema>;
