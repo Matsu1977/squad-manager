@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PLAYER_ROLES, PLAYER_STATUSES } from "@/lib/team";
+import {
+  PLAYER_ROLES,
+  PLAYER_STATUSES,
+  PREFERRED_FEET,
+  RATING_FIELDS,
+} from "@/lib/team";
 
 const formSchema = z.object({
   first_name: z.string().min(1, "Il nome è obbligatorio"),
@@ -19,6 +24,15 @@ const formSchema = z.object({
   photo_url: z.string().url().optional().or(z.literal("")),
   status: z.enum(["Ativo", "Infortunato", "Sospeso", "Inattivo"]),
   notes: z.string().optional(),
+  height_cm: z.coerce.number().int().min(100).max(250).optional(),
+  weight_kg: z.coerce.number().int().min(30).max(200).optional(),
+  preferred_foot: z.enum(["Destro", "Sinistro", "Ambidestro"]).optional().or(z.literal("")),
+  rating_pace: z.coerce.number().int().min(1).max(100).optional(),
+  rating_shooting: z.coerce.number().int().min(1).max(100).optional(),
+  rating_passing: z.coerce.number().int().min(1).max(100).optional(),
+  rating_dribbling: z.coerce.number().int().min(1).max(100).optional(),
+  rating_defending: z.coerce.number().int().min(1).max(100).optional(),
+  rating_physical: z.coerce.number().int().min(1).max(100).optional(),
 });
 
 export type PlayerFormValues = z.infer<typeof formSchema>;
@@ -143,6 +157,53 @@ export function PlayerForm({
       <div className="space-y-2">
         <Label htmlFor="notes">Note</Label>
         <Textarea id="notes" {...form.register("notes")} rows={4} />
+      </div>
+
+      <div className="space-y-3 rounded-md border p-4">
+        <h3 className="text-sm font-semibold">Parametri fisici</h3>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="height_cm">Altezza (cm)</Label>
+            <Input id="height_cm" type="number" min={100} max={250} {...form.register("height_cm")} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="weight_kg">Peso (kg)</Label>
+            <Input id="weight_kg" type="number" min={30} max={200} {...form.register("weight_kg")} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="preferred_foot">Piede preferito</Label>
+            <select
+              id="preferred_foot"
+              {...form.register("preferred_foot")}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="">—</option>
+              {PREFERRED_FEET.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-md border p-4">
+        <h3 className="text-sm font-semibold">Valutazioni tecniche (1-100)</h3>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {RATING_FIELDS.map((r) => (
+            <div key={r.key} className="space-y-2">
+              <Label htmlFor={r.key}>{r.label}</Label>
+              <Input
+                id={r.key}
+                type="number"
+                min={1}
+                max={100}
+                {...form.register(r.key)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
