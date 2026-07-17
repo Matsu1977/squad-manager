@@ -18,7 +18,7 @@ import {
   getPlayer,
   playerQueryOptions,
 } from "@/lib/players.functions";
-import { ROLE_COLORS, STATUS_VARIANTS } from "@/lib/team";
+import { RATING_FIELDS, ROLE_COLORS, STATUS_VARIANTS } from "@/lib/team";
 
 export const Route = createFileRoute("/players/$id")({
   head: () => ({
@@ -134,6 +134,63 @@ function PlayerDetailPage() {
           ) : null}
         </CardContent>
       </Card>
+
+      {(player.height_cm || player.weight_kg || player.preferred_foot) ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Parametri fisici</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-xs text-muted-foreground">Altezza</div>
+              <div className="text-lg font-semibold">
+                {player.height_cm ? `${player.height_cm} cm` : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Peso</div>
+              <div className="text-lg font-semibold">
+                {player.weight_kg ? `${player.weight_kg} kg` : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Piede</div>
+              <div className="text-lg font-semibold">
+                {player.preferred_foot ?? "—"}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {RATING_FIELDS.some((r) => player[r.key] != null) ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Valutazioni tecniche</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {RATING_FIELDS.map((r) => {
+              const value = player[r.key] as number | null;
+              return (
+                <div key={r.key} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">{r.label}</span>
+                    <span className="text-muted-foreground">
+                      {value ?? "—"}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{ width: `${value ?? 0}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="flex gap-2">
         <Button asChild variant="outline">
