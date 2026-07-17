@@ -116,45 +116,72 @@ export type Database = {
           created_at: string
           email: string | null
           first_name: string
+          height_cm: number | null
           id: string
           jersey_number: number | null
           last_name: string
           notes: string | null
           phone: string | null
           photo_url: string | null
+          preferred_foot: Database["public"]["Enums"]["preferred_foot"] | null
+          rating_defending: number | null
+          rating_dribbling: number | null
+          rating_pace: number | null
+          rating_passing: number | null
+          rating_physical: number | null
+          rating_shooting: number | null
           role: Database["public"]["Enums"]["player_role"]
           status: Database["public"]["Enums"]["player_status"]
           updated_at: string
+          weight_kg: number | null
         }
         Insert: {
           birth_date?: string | null
           created_at?: string
           email?: string | null
           first_name: string
+          height_cm?: number | null
           id?: string
           jersey_number?: number | null
           last_name: string
           notes?: string | null
           phone?: string | null
           photo_url?: string | null
+          preferred_foot?: Database["public"]["Enums"]["preferred_foot"] | null
+          rating_defending?: number | null
+          rating_dribbling?: number | null
+          rating_pace?: number | null
+          rating_passing?: number | null
+          rating_physical?: number | null
+          rating_shooting?: number | null
           role: Database["public"]["Enums"]["player_role"]
           status?: Database["public"]["Enums"]["player_status"]
           updated_at?: string
+          weight_kg?: number | null
         }
         Update: {
           birth_date?: string | null
           created_at?: string
           email?: string | null
           first_name?: string
+          height_cm?: number | null
           id?: string
           jersey_number?: number | null
           last_name?: string
           notes?: string | null
           phone?: string | null
           photo_url?: string | null
+          preferred_foot?: Database["public"]["Enums"]["preferred_foot"] | null
+          rating_defending?: number | null
+          rating_dribbling?: number | null
+          rating_pace?: number | null
+          rating_passing?: number | null
+          rating_physical?: number | null
+          rating_shooting?: number | null
           role?: Database["public"]["Enums"]["player_role"]
           status?: Database["public"]["Enums"]["player_status"]
           updated_at?: string
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -245,6 +272,7 @@ export type Database = {
         | "Attaccante"
         | "Allenatore"
       player_status: "Ativo" | "Infortunato" | "Sospeso" | "Inattivo"
+      preferred_foot: "Destro" | "Sinistro" | "Ambidestro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -380,6 +408,7 @@ export const Constants = {
         "Allenatore",
       ],
       player_status: ["Ativo", "Infortunato", "Sospeso", "Inattivo"],
+      preferred_foot: ["Destro", "Sinistro", "Ambidestro"],
     },
   },
 } as const

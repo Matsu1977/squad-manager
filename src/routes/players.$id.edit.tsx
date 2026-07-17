@@ -61,7 +61,10 @@ function EditPlayerPage() {
   });
 
   const onSubmit = (values: PlayerFormValues) => {
-    mutation.mutate({ data: { id, ...values } });
+    const { preferred_foot, ...rest } = values;
+    mutation.mutate({
+      data: { id, ...rest, preferred_foot: preferred_foot ? preferred_foot : null },
+    });
   };
 
   const defaultValues: Partial<PlayerFormValues> = {
@@ -75,6 +78,15 @@ function EditPlayerPage() {
     photo_url: player.photo_url ?? undefined,
     status: player.status,
     notes: player.notes ?? undefined,
+    height_cm: player.height_cm ?? undefined,
+    weight_kg: player.weight_kg ?? undefined,
+    preferred_foot: player.preferred_foot ?? undefined,
+    rating_pace: player.rating_pace ?? undefined,
+    rating_shooting: player.rating_shooting ?? undefined,
+    rating_passing: player.rating_passing ?? undefined,
+    rating_dribbling: player.rating_dribbling ?? undefined,
+    rating_defending: player.rating_defending ?? undefined,
+    rating_physical: player.rating_physical ?? undefined,
   };
 
   return (
