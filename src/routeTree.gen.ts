@@ -14,12 +14,16 @@ import { Route as PlayersRouteImport } from './routes/players'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrainingsIndexRouteImport } from './routes/trainings.index'
 import { Route as PlayersIndexRouteImport } from './routes/players.index'
 import { Route as MatchesIndexRouteImport } from './routes/matches.index'
+import { Route as TrainingsNewRouteImport } from './routes/trainings.new'
+import { Route as TrainingsIdRouteImport } from './routes/trainings.$id'
 import { Route as PlayersNewRouteImport } from './routes/players.new'
 import { Route as PlayersIdRouteImport } from './routes/players.$id'
 import { Route as MatchesNewRouteImport } from './routes/matches.new'
 import { Route as MatchesIdRouteImport } from './routes/matches.$id'
+import { Route as TrainingsIdEditRouteImport } from './routes/trainings.$id.edit'
 import { Route as PlayersIdEditRouteImport } from './routes/players.$id.edit'
 import { Route as MatchesIdEditRouteImport } from './routes/matches.$id.edit'
 
@@ -48,6 +52,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrainingsIndexRoute = TrainingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TrainingsRoute,
+} as any)
 const PlayersIndexRoute = PlayersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -57,6 +66,16 @@ const MatchesIndexRoute = MatchesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => MatchesRoute,
+} as any)
+const TrainingsNewRoute = TrainingsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => TrainingsRoute,
+} as any)
+const TrainingsIdRoute = TrainingsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TrainingsRoute,
 } as any)
 const PlayersNewRoute = PlayersNewRouteImport.update({
   id: '/new',
@@ -78,6 +97,11 @@ const MatchesIdRoute = MatchesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => MatchesRoute,
 } as any)
+const TrainingsIdEditRoute = TrainingsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => TrainingsIdRoute,
+} as any)
 const PlayersIdEditRoute = PlayersIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -94,28 +118,35 @@ export interface FileRoutesByFullPath {
   '/formations': typeof FormationsRoute
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
-  '/trainings': typeof TrainingsRoute
+  '/trainings': typeof TrainingsRouteWithChildren
   '/matches/$id': typeof MatchesIdRouteWithChildren
   '/matches/new': typeof MatchesNewRoute
   '/players/$id': typeof PlayersIdRouteWithChildren
   '/players/new': typeof PlayersNewRoute
+  '/trainings/$id': typeof TrainingsIdRouteWithChildren
+  '/trainings/new': typeof TrainingsNewRoute
   '/matches/': typeof MatchesIndexRoute
   '/players/': typeof PlayersIndexRoute
+  '/trainings/': typeof TrainingsIndexRoute
   '/matches/$id/edit': typeof MatchesIdEditRoute
   '/players/$id/edit': typeof PlayersIdEditRoute
+  '/trainings/$id/edit': typeof TrainingsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/formations': typeof FormationsRoute
-  '/trainings': typeof TrainingsRoute
   '/matches/$id': typeof MatchesIdRouteWithChildren
   '/matches/new': typeof MatchesNewRoute
   '/players/$id': typeof PlayersIdRouteWithChildren
   '/players/new': typeof PlayersNewRoute
+  '/trainings/$id': typeof TrainingsIdRouteWithChildren
+  '/trainings/new': typeof TrainingsNewRoute
   '/matches': typeof MatchesIndexRoute
   '/players': typeof PlayersIndexRoute
+  '/trainings': typeof TrainingsIndexRoute
   '/matches/$id/edit': typeof MatchesIdEditRoute
   '/players/$id/edit': typeof PlayersIdEditRoute
+  '/trainings/$id/edit': typeof TrainingsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,15 +154,19 @@ export interface FileRoutesById {
   '/formations': typeof FormationsRoute
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
-  '/trainings': typeof TrainingsRoute
+  '/trainings': typeof TrainingsRouteWithChildren
   '/matches/$id': typeof MatchesIdRouteWithChildren
   '/matches/new': typeof MatchesNewRoute
   '/players/$id': typeof PlayersIdRouteWithChildren
   '/players/new': typeof PlayersNewRoute
+  '/trainings/$id': typeof TrainingsIdRouteWithChildren
+  '/trainings/new': typeof TrainingsNewRoute
   '/matches/': typeof MatchesIndexRoute
   '/players/': typeof PlayersIndexRoute
+  '/trainings/': typeof TrainingsIndexRoute
   '/matches/$id/edit': typeof MatchesIdEditRoute
   '/players/$id/edit': typeof PlayersIdEditRoute
+  '/trainings/$id/edit': typeof TrainingsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -145,23 +180,30 @@ export interface FileRouteTypes {
     | '/matches/new'
     | '/players/$id'
     | '/players/new'
+    | '/trainings/$id'
+    | '/trainings/new'
     | '/matches/'
     | '/players/'
+    | '/trainings/'
     | '/matches/$id/edit'
     | '/players/$id/edit'
+    | '/trainings/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/formations'
-    | '/trainings'
     | '/matches/$id'
     | '/matches/new'
     | '/players/$id'
     | '/players/new'
+    | '/trainings/$id'
+    | '/trainings/new'
     | '/matches'
     | '/players'
+    | '/trainings'
     | '/matches/$id/edit'
     | '/players/$id/edit'
+    | '/trainings/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -173,10 +215,14 @@ export interface FileRouteTypes {
     | '/matches/new'
     | '/players/$id'
     | '/players/new'
+    | '/trainings/$id'
+    | '/trainings/new'
     | '/matches/'
     | '/players/'
+    | '/trainings/'
     | '/matches/$id/edit'
     | '/players/$id/edit'
+    | '/trainings/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,7 +230,7 @@ export interface RootRouteChildren {
   FormationsRoute: typeof FormationsRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   PlayersRoute: typeof PlayersRouteWithChildren
-  TrainingsRoute: typeof TrainingsRoute
+  TrainingsRoute: typeof TrainingsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -224,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trainings/': {
+      id: '/trainings/'
+      path: '/'
+      fullPath: '/trainings/'
+      preLoaderRoute: typeof TrainingsIndexRouteImport
+      parentRoute: typeof TrainingsRoute
+    }
     '/players/': {
       id: '/players/'
       path: '/'
@@ -237,6 +290,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/matches/'
       preLoaderRoute: typeof MatchesIndexRouteImport
       parentRoute: typeof MatchesRoute
+    }
+    '/trainings/new': {
+      id: '/trainings/new'
+      path: '/new'
+      fullPath: '/trainings/new'
+      preLoaderRoute: typeof TrainingsNewRouteImport
+      parentRoute: typeof TrainingsRoute
+    }
+    '/trainings/$id': {
+      id: '/trainings/$id'
+      path: '/$id'
+      fullPath: '/trainings/$id'
+      preLoaderRoute: typeof TrainingsIdRouteImport
+      parentRoute: typeof TrainingsRoute
     }
     '/players/new': {
       id: '/players/new'
@@ -265,6 +332,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/matches/$id'
       preLoaderRoute: typeof MatchesIdRouteImport
       parentRoute: typeof MatchesRoute
+    }
+    '/trainings/$id/edit': {
+      id: '/trainings/$id/edit'
+      path: '/edit'
+      fullPath: '/trainings/$id/edit'
+      preLoaderRoute: typeof TrainingsIdEditRouteImport
+      parentRoute: typeof TrainingsIdRoute
     }
     '/players/$id/edit': {
       id: '/players/$id/edit'
@@ -337,23 +411,41 @@ const PlayersRouteChildren: PlayersRouteChildren = {
 const PlayersRouteWithChildren =
   PlayersRoute._addFileChildren(PlayersRouteChildren)
 
+interface TrainingsIdRouteChildren {
+  TrainingsIdEditRoute: typeof TrainingsIdEditRoute
+}
+
+const TrainingsIdRouteChildren: TrainingsIdRouteChildren = {
+  TrainingsIdEditRoute: TrainingsIdEditRoute,
+}
+
+const TrainingsIdRouteWithChildren = TrainingsIdRoute._addFileChildren(
+  TrainingsIdRouteChildren,
+)
+
+interface TrainingsRouteChildren {
+  TrainingsIdRoute: typeof TrainingsIdRouteWithChildren
+  TrainingsNewRoute: typeof TrainingsNewRoute
+  TrainingsIndexRoute: typeof TrainingsIndexRoute
+}
+
+const TrainingsRouteChildren: TrainingsRouteChildren = {
+  TrainingsIdRoute: TrainingsIdRouteWithChildren,
+  TrainingsNewRoute: TrainingsNewRoute,
+  TrainingsIndexRoute: TrainingsIndexRoute,
+}
+
+const TrainingsRouteWithChildren = TrainingsRoute._addFileChildren(
+  TrainingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FormationsRoute: FormationsRoute,
   MatchesRoute: MatchesRouteWithChildren,
   PlayersRoute: PlayersRouteWithChildren,
-  TrainingsRoute: TrainingsRoute,
+  TrainingsRoute: TrainingsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
