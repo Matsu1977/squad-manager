@@ -22,6 +22,7 @@ import { Route as PlayersNewRouteImport } from './routes/players.new'
 import { Route as PlayersIdRouteImport } from './routes/players.$id'
 import { Route as MatchesNewRouteImport } from './routes/matches.new'
 import { Route as MatchesIdRouteImport } from './routes/matches.$id'
+import { Route as TrainingsIdEditRouteImport } from './routes/trainings.$id.edit'
 import { Route as PlayersIdEditRouteImport } from './routes/players.$id.edit'
 import { Route as MatchesIdEditRouteImport } from './routes/matches.$id.edit'
 
@@ -90,6 +91,11 @@ const MatchesIdRoute = MatchesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => MatchesRoute,
 } as any)
+const TrainingsIdEditRoute = TrainingsIdEditRouteImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => TrainingsRoute,
+} as any)
 const PlayersIdEditRoute = PlayersIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/trainings/': typeof TrainingsIndexRoute
   '/matches/$id/edit': typeof MatchesIdEditRoute
   '/players/$id/edit': typeof PlayersIdEditRoute
+  '/trainings/$id/edit': typeof TrainingsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/trainings': typeof TrainingsIndexRoute
   '/matches/$id/edit': typeof MatchesIdEditRoute
   '/players/$id/edit': typeof PlayersIdEditRoute
+  '/trainings/$id/edit': typeof TrainingsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/trainings/': typeof TrainingsIndexRoute
   '/matches/$id/edit': typeof MatchesIdEditRoute
   '/players/$id/edit': typeof PlayersIdEditRoute
+  '/trainings/$id/edit': typeof TrainingsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/trainings/'
     | '/matches/$id/edit'
     | '/players/$id/edit'
+    | '/trainings/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/trainings'
     | '/matches/$id/edit'
     | '/players/$id/edit'
+    | '/trainings/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/trainings/'
     | '/matches/$id/edit'
     | '/players/$id/edit'
+    | '/trainings/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -302,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchesIdRouteImport
       parentRoute: typeof MatchesRoute
     }
+    '/trainings/$id/edit': {
+      id: '/trainings/$id/edit'
+      path: '/$id/edit'
+      fullPath: '/trainings/$id/edit'
+      preLoaderRoute: typeof TrainingsIdEditRouteImport
+      parentRoute: typeof TrainingsRoute
+    }
     '/players/$id/edit': {
       id: '/players/$id/edit'
       path: '/edit'
@@ -376,11 +395,13 @@ const PlayersRouteWithChildren =
 interface TrainingsRouteChildren {
   TrainingsNewRoute: typeof TrainingsNewRoute
   TrainingsIndexRoute: typeof TrainingsIndexRoute
+  TrainingsIdEditRoute: typeof TrainingsIdEditRoute
 }
 
 const TrainingsRouteChildren: TrainingsRouteChildren = {
   TrainingsNewRoute: TrainingsNewRoute,
   TrainingsIndexRoute: TrainingsIndexRoute,
+  TrainingsIdEditRoute: TrainingsIdEditRoute,
 }
 
 const TrainingsRouteWithChildren = TrainingsRoute._addFileChildren(
