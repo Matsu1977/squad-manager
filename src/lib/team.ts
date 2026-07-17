@@ -58,3 +58,16 @@ export const FORMATIONS = [
   "5-3-2",
 ] as const;
 export type Formation = (typeof FORMATIONS)[number];
+
+export const PREFERRED_FEET = ["Destro", "Sinistro", "Ambidestro"] as const;
+export type PreferredFoot = (typeof PREFERRED_FEET)[number];
+
+export const RATING_FIELDS = [
+  { key: "rating_pace", label: "Velocità" },
+  { key: "rating_shooting", label: "Tiro" },
+  { key: "rating_passing", label: "Passaggio" },
+  { key: "rating_dribbling", label: "Dribbling" },
+  { key: "rating_defending", label: "Difesa" },
+  { key: "rating_physical", label: "Fisico" },
+] as const;
+export type RatingKey = (typeof RATING_FIELDS)[number]["key"];
