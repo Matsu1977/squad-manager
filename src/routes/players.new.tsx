@@ -46,7 +46,10 @@ function NewPlayerPage() {
   });
 
   const onSubmit = (values: PlayerFormValues) => {
-    mutation.mutate({ data: values });
+    const { preferred_foot, ...rest } = values;
+    mutation.mutate({
+      data: { ...rest, preferred_foot: preferred_foot ? preferred_foot : null },
+    });
   };
 
   return (
