@@ -49,17 +49,11 @@ export const saveMatchStats = createServerFn({ method: "POST" })
         s.red_cards > 0 ||
         s.minutes_played > 0
     );
-    // Delete rows now empty
-    const keepIds = nonEmpty.map((s) => s.player_id);
+    // Replace all stats for this match
     const del = await supabaseAdmin
       .from("match_stats")
       .delete()
-      .eq("match_id", data.match_id)
-      .not(
-        "player_id",
-        "in",
-        `(${keepIds.length ? keepIds.map((i) => `"${i}"`).join(",") : '""'})`
-      );
+      .eq("match_id", data.match_id);
     if (del.error) throw del.error;
 
     if (nonEmpty.length > 0) {
@@ -69,7 +63,7 @@ export const saveMatchStats = createServerFn({ method: "POST" })
       }));
       const { error } = await supabaseAdmin
         .from("match_stats")
-        .upsert(payload, { onConflict: "match_id,player_id" });
+        .insert(payload);
       if (error) throw error;
     }
     return { success: true };
