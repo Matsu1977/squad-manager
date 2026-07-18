@@ -5,6 +5,7 @@ import {
   LayoutGrid,
   Shield,
   Users,
+  BarChart3,
 } from "lucide-react";
 
 import {
@@ -25,6 +26,7 @@ const items = [
   { title: "Formazioni", url: "/formations", icon: LayoutGrid },
   { title: "Partite", url: "/matches", icon: Shield },
   { title: "Allenamenti", url: "/trainings", icon: CalendarDays },
+  { title: "Statistiche", url: "/stats", icon: BarChart3 },
 ];
 
 export function AppSidebar() {

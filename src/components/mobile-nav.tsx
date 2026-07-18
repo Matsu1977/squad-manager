@@ -1,12 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, Home, LayoutGrid, Shield, Users } from "lucide-react";
+import { BarChart3, CalendarDays, Home, Shield, Users } from "lucide-react";
 
 const items = [
   { title: "Home", url: "/", icon: Home },
   { title: "Giocatori", url: "/players", icon: Users },
-  { title: "Formazioni", url: "/formations", icon: LayoutGrid },
   { title: "Partite", url: "/matches", icon: Shield },
   { title: "Allenamenti", url: "/trainings", icon: CalendarDays },
+  { title: "Stats", url: "/stats", icon: BarChart3 },
 ];
 
 export function MobileNav() {

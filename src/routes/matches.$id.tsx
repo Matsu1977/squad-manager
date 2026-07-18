@@ -18,11 +18,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { matchQueryOptions, deleteMatch } from "@/lib/matches.functions";
+import { matchStatsQueryOptions } from "@/lib/match-stats.functions";
+import { playersQueryOptions } from "@/lib/players.functions";
+import { MatchStatsEditor } from "@/components/match-stats-editor";
 
 export const Route = createFileRoute("/matches/$id")({
   head: () => ({ meta: [{ title: "Dettaglio partita — Team Manager" }] }),
-  loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(matchQueryOptions(params.id)),
+  loader: ({ context, params }) => {
+    context.queryClient.ensureQueryData(matchQueryOptions(params.id));
+    context.queryClient.ensureQueryData(matchStatsQueryOptions(params.id));
+    context.queryClient.ensureQueryData(playersQueryOptions());
+  },
   component: MatchDetail,
 });
 
@@ -31,6 +37,8 @@ function MatchDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: m } = useSuspenseQuery(matchQueryOptions(id));
+  const { data: stats } = useSuspenseQuery(matchStatsQueryOptions(id));
+  const { data: players } = useSuspenseQuery(playersQueryOptions());
 
   const del = useMutation({
     mutationFn: deleteMatch,
@@ -131,6 +139,19 @@ function MatchDetail() {
               <div className="whitespace-pre-wrap">{m.notes}</div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Statistiche giocatori</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MatchStatsEditor
+            matchId={m.id}
+            players={players}
+            existing={stats}
+          />
         </CardContent>
       </Card>
     </div>
