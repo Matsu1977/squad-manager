@@ -1,0 +1,1 @@
+ALTER TABLE public.match_stats ADD CONSTRAINT match_stats_match_player_unique UNIQUE (match_id, player_id);
