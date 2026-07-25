@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      match_lineup_players: {
+        Row: {
+          created_at: string
+          id: string
+          is_starter: boolean
+          match_id: string
+          player_id: string
+          position_label: string | null
+          slot: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_starter?: boolean
+          match_id: string
+          player_id: string
+          position_label?: string | null
+          slot?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_starter?: boolean
+          match_id?: string
+          player_id?: string
+          position_label?: string | null
+          slot?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_lineup_players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_lineup_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_stats: {
         Row: {
           assists: number

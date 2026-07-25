@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Pencil, Trash2, ArrowLeft, LayoutGrid } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +80,12 @@ function MatchDetail() {
               <Link to="/matches/$id/edit" params={{ id: m.id }}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Modifica
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/matches/$id/lineup" params={{ id: m.id }}>
+                <LayoutGrid className="mr-2 h-4 w-4" />
+                Formazione
               </Link>
             </Button>
             <AlertDialog>
