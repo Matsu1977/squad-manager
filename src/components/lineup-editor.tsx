@@ -1,11 +1,21 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { Save, GripVertical, ArrowRight, ArrowLeft, X } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  useDraggable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -14,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FORMATIONS, PLAYER_ROLES, ROLE_TEXT_COLORS } from "@/lib/team";
+import { FORMATIONS, ROLE_COLORS } from "@/lib/team";
 import type { PlayerRole } from "@/lib/team";
 import { saveLineup } from "@/lib/lineups.functions";
 
@@ -26,12 +36,168 @@ type Player = {
   role: string;
 };
 
+type Bucket = "available" | "starters" | "subs";
+
 type Entry = {
-  player_id: string;
-  is_starter: boolean;
-  selected: boolean;
+  bucket: Bucket;
   position_label: string;
 };
+
+const BUCKET_LABEL: Record<Bucket, string> = {
+  available: "Disponibili",
+  starters: "Titolari",
+  subs: "Riserve",
+};
+
+function PlayerChip({
+  player,
+  positionLabel,
+  onPositionChange,
+  onMove,
+  onRemove,
+  bucket,
+  dragging,
+}: {
+  player: Player;
+  positionLabel: string;
+  onPositionChange?: (v: string) => void;
+  onMove?: (target: Bucket) => void;
+  onRemove?: () => void;
+  bucket: Bucket;
+  dragging?: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: player.id,
+  });
+  const roleColor = ROLE_COLORS[player.role as PlayerRole] ?? "bg-muted";
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex items-center gap-2 rounded-md border bg-card p-2 shadow-sm ${
+        isDragging || dragging ? "opacity-50" : ""
+      }`}
+    >
+      <button
+        type="button"
+        className="cursor-grab touch-none text-muted-foreground hover:text-foreground"
+        {...listeners}
+        {...attributes}
+        aria-label="Trascina"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className={`h-2 w-2 shrink-0 rounded-full ${roleColor}`} />
+      <div className="min-w-0 flex-1 text-sm">
+        {player.jersey_number != null && (
+          <span className="mr-1 text-muted-foreground">
+            #{player.jersey_number}
+          </span>
+        )}
+        <span className="truncate">
+          {player.first_name} {player.last_name}
+        </span>
+      </div>
+      {bucket !== "available" && onPositionChange && (
+        <Input
+          value={positionLabel}
+          onChange={(e) => onPositionChange(e.target.value)}
+          placeholder="Ruolo"
+          className="h-7 w-20 text-xs"
+        />
+      )}
+      <div className="flex items-center gap-1">
+        {bucket === "available" && onMove && (
+          <>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={() => onMove("starters")}
+            >
+              T
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={() => onMove("subs")}
+            >
+              R
+            </Button>
+          </>
+        )}
+        {bucket === "starters" && onMove && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-1"
+            onClick={() => onMove("subs")}
+            title="Sposta in riserve"
+          >
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        )}
+        {bucket === "subs" && onMove && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-1"
+            onClick={() => onMove("starters")}
+            title="Sposta in titolari"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+          </Button>
+        )}
+        {bucket !== "available" && onRemove && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-1 text-muted-foreground hover:text-destructive"
+            onClick={onRemove}
+            title="Rimuovi dai convocati"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Column({
+  id,
+  title,
+  count,
+  limit,
+  children,
+}: {
+  id: Bucket;
+  title: string;
+  count: number;
+  limit?: number;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  const over = limit != null && count > limit;
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex min-h-[200px] flex-col rounded-lg border-2 border-dashed p-3 transition-colors ${
+        isOver ? "border-primary bg-primary/5" : "border-border bg-muted/20"
+      }`}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold">{title}</h3>
+        <Badge variant={over ? "destructive" : "secondary"}>
+          {count}
+          {limit != null ? `/${limit}` : ""}
+        </Badge>
+      </div>
+      <div className="flex-1 space-y-1.5">{children}</div>
+    </div>
+  );
+}
 
 export function LineupEditor({
   matchId,
@@ -49,16 +215,17 @@ export function LineupEditor({
   }[];
 }) {
   const queryClient = useQueryClient();
-  const roster = players.filter((p) => p.role !== "Allenatore");
+  const roster = useMemo(
+    () => players.filter((p) => p.role !== "Allenatore"),
+    [players]
+  );
 
   const initial = useMemo<Record<string, Entry>>(() => {
     const map: Record<string, Entry> = {};
     for (const p of roster) {
       const e = existing.find((x) => x.player_id === p.id);
       map[p.id] = {
-        player_id: p.id,
-        selected: !!e,
-        is_starter: e?.is_starter ?? true,
+        bucket: e ? (e.is_starter ? "starters" : "subs") : "available",
         position_label: e?.position_label ?? "",
       };
     }
@@ -70,9 +237,31 @@ export function LineupEditor({
   const [selectedFormation, setSelectedFormation] = useState<string>(
     formation ?? ""
   );
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-  const set = <K extends keyof Entry>(id: string, key: K, value: Entry[K]) =>
-    setRows((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+  );
+
+  const move = (id: string, target: Bucket) =>
+    setRows((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], bucket: target },
+    }));
+
+  const setPos = (id: string, value: string) =>
+    setRows((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], position_label: value },
+    }));
+
+  const onDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id));
+  const onDragEnd = (e: DragEndEvent) => {
+    setActiveId(null);
+    const over = e.over?.id;
+    if (!over) return;
+    move(String(e.active.id), over as Bucket);
+  };
 
   const mutation = useMutation({
     mutationFn: saveLineup,
@@ -85,21 +274,46 @@ export function LineupEditor({
     onError: (e) => toast.error(e.message || "Errore nel salvataggio"),
   });
 
-  const entries = Object.values(rows).filter((r) => r.selected);
-  const starters = entries.filter((r) => r.is_starter);
-  const subs = entries.filter((r) => !r.is_starter);
+  const byBucket = (b: Bucket) =>
+    roster.filter((p) => rows[p.id]?.bucket === b);
 
-  const onSave = () =>
+  const available = byBucket("available");
+  const starters = byBucket("starters");
+  const subs = byBucket("subs");
+
+  const onSave = () => {
+    const entries = [...starters, ...subs].map((p) => ({
+      player_id: p.id,
+      is_starter: rows[p.id].bucket === "starters",
+      position_label: rows[p.id].position_label || null,
+    }));
     mutation.mutate({
       data: {
         match_id: matchId,
         formation: selectedFormation || null,
-        entries: entries.map((r) => ({
-          player_id: r.player_id,
-          is_starter: r.is_starter,
-          position_label: r.position_label || null,
-        })),
+        entries,
       },
+    });
+  };
+
+  const resetAll = () =>
+    setRows((prev) => {
+      const next: Record<string, Entry> = {};
+      for (const id of Object.keys(prev)) {
+        next[id] = { bucket: "available", position_label: "" };
+      }
+      return next;
+    });
+
+  const allToSubs = () =>
+    setRows((prev) => {
+      const next: Record<string, Entry> = { ...prev };
+      for (const p of roster) {
+        if (next[p.id].bucket === "available") {
+          next[p.id] = { ...next[p.id], bucket: "subs" };
+        }
+      }
+      return next;
     });
 
   if (roster.length === 0) {
@@ -110,15 +324,13 @@ export function LineupEditor({
     );
   }
 
-  // group by role for clarity
-  const grouped = PLAYER_ROLES.filter((r) => r !== "Allenatore").map((role) => ({
-    role: role as PlayerRole,
-    list: roster.filter((p) => p.role === role),
-  }));
+  const activePlayer = activeId
+    ? roster.find((p) => p.id === activeId)
+    : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end gap-4">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-3">
         <div className="w-48">
           <label className="mb-1 block text-sm font-medium">Modulo</label>
           <Select
@@ -138,74 +350,114 @@ export function LineupEditor({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="default">Titolari: {starters.length}</Badge>
-          <Badge variant="secondary">Riserve: {subs.length}</Badge>
-          <Badge variant="outline">Convocati: {entries.length}</Badge>
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" onClick={allToSubs}>
+            Convoca tutti
+          </Button>
+          <Button variant="ghost" size="sm" onClick={resetAll}>
+            Azzera
+          </Button>
         </div>
       </div>
 
-      <div className="space-y-6">
-        {grouped.map(({ role, list }) => {
-          if (list.length === 0) return null;
-          return (
-            <div key={role} className="space-y-2">
-              <h3
-                className={`text-sm font-semibold uppercase tracking-wide ${ROLE_TEXT_COLORS[role]}`}
-              >
-                {role}
-              </h3>
-              <div className="space-y-1">
-                {list.map((p) => {
-                  const r = rows[p.id];
-                  return (
-                    <div
-                      key={p.id}
-                      className="flex flex-wrap items-center gap-3 rounded-md border p-2"
-                    >
-                      <Checkbox
-                        checked={r.selected}
-                        onCheckedChange={(v) =>
-                          set(p.id, "selected", !!v)
-                        }
-                      />
-                      <div className="min-w-[10rem] flex-1 text-sm">
-                        {p.jersey_number != null && (
-                          <span className="mr-2 text-muted-foreground">
-                            #{p.jersey_number}
-                          </span>
-                        )}
-                        {p.first_name} {p.last_name}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <label className="flex items-center gap-1 text-xs">
-                          <Checkbox
-                            checked={r.is_starter}
-                            disabled={!r.selected}
-                            onCheckedChange={(v) =>
-                              set(p.id, "is_starter", !!v)
-                            }
-                          />
-                          Titolare
-                        </label>
-                        <Input
-                          value={r.position_label}
-                          disabled={!r.selected}
-                          onChange={(e) =>
-                            set(p.id, "position_label", e.target.value)
-                          }
-                          placeholder="Ruolo (es. CDC)"
-                          className="h-8 w-32"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+      <p className="text-xs text-muted-foreground">
+        Trascina i giocatori tra le colonne o usa i pulsanti T (titolare) / R
+        (riserva) per una selezione rapida.
+      </p>
+
+      <DndContext
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragCancel={() => setActiveId(null)}
+      >
+        <div className="grid gap-3 md:grid-cols-3">
+          <Column
+            id="available"
+            title={BUCKET_LABEL.available}
+            count={available.length}
+          >
+            {available.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Tutti convocati.
+              </p>
+            )}
+            {available.map((p) => (
+              <PlayerChip
+                key={p.id}
+                player={p}
+                bucket="available"
+                positionLabel=""
+                onMove={(t) => move(p.id, t)}
+              />
+            ))}
+          </Column>
+
+          <Column
+            id="starters"
+            title={BUCKET_LABEL.starters}
+            count={starters.length}
+            limit={11}
+          >
+            {starters.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Trascina qui i titolari.
+              </p>
+            )}
+            {starters.map((p) => (
+              <PlayerChip
+                key={p.id}
+                player={p}
+                bucket="starters"
+                positionLabel={rows[p.id].position_label}
+                onPositionChange={(v) => setPos(p.id, v)}
+                onMove={(t) => move(p.id, t)}
+                onRemove={() => move(p.id, "available")}
+              />
+            ))}
+          </Column>
+
+          <Column id="subs" title={BUCKET_LABEL.subs} count={subs.length}>
+            {subs.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Trascina qui le riserve.
+              </p>
+            )}
+            {subs.map((p) => (
+              <PlayerChip
+                key={p.id}
+                player={p}
+                bucket="subs"
+                positionLabel={rows[p.id].position_label}
+                onPositionChange={(v) => setPos(p.id, v)}
+                onMove={(t) => move(p.id, t)}
+                onRemove={() => move(p.id, "available")}
+              />
+            ))}
+          </Column>
+        </div>
+
+        <DragOverlay>
+          {activePlayer ? (
+            <div className="flex items-center gap-2 rounded-md border bg-card p-2 shadow-lg">
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  ROLE_COLORS[activePlayer.role as PlayerRole] ?? "bg-muted"
+                }`}
+              />
+              <span className="text-sm">
+                {activePlayer.jersey_number != null && (
+                  <span className="mr-1 text-muted-foreground">
+                    #{activePlayer.jersey_number}
+                  </span>
+                )}
+                {activePlayer.first_name} {activePlayer.last_name}
+              </span>
             </div>
-          );
-        })}
-      </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       <Button onClick={onSave} disabled={mutation.isPending}>
         <Save className="mr-2 h-4 w-4" />
