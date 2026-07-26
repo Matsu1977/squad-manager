@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save, GripVertical, ArrowRight, ArrowLeft, X } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -17,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -282,6 +284,10 @@ export function LineupEditor({
   const subs = byBucket("subs");
 
   const onSave = () => {
+    if (errors.length > 0) {
+      toast.error("Correggi gli errori prima di salvare");
+      return;
+    }
     const entries = [...starters, ...subs].map((p) => ({
       player_id: p.id,
       is_starter: rows[p.id].bucket === "starters",
@@ -328,6 +334,29 @@ export function LineupEditor({
     ? roster.find((p) => p.id === activeId)
     : null;
 
+  // Validation
+  const errors: string[] = [];
+  if (!selectedFormation) errors.push("Seleziona un modulo tattico.");
+  if (starters.length > 11)
+    errors.push(`Troppi titolari (${starters.length}/11). Sposta o rimuovi giocatori.`);
+  if (starters.length > 0 && starters.length < 11)
+    errors.push(`Titolari incompleti (${starters.length}/11).`);
+  if (starters.length === 0 && subs.length === 0)
+    errors.push("Convoca almeno un giocatore.");
+  const bucketMap = new Map<string, Bucket>();
+  const duplicates: string[] = [];
+  for (const p of roster) {
+    const b = rows[p.id]?.bucket;
+    if (!b || b === "available") continue;
+    if (bucketMap.has(p.id)) duplicates.push(`${p.first_name} ${p.last_name}`);
+    bucketMap.set(p.id, b);
+  }
+  if (duplicates.length > 0)
+    errors.push(`Giocatori duplicati: ${duplicates.join(", ")}.`);
+  const goalies = starters.filter((p) => p.role === "Portiere").length;
+  if (goalies > 1)
+    errors.push(`Puoi schierare un solo portiere titolare (attuali: ${goalies}).`);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
@@ -364,6 +393,20 @@ export function LineupEditor({
         Trascina i giocatori tra le colonne o usa i pulsanti T (titolare) / R
         (riserva) per una selezione rapida.
       </p>
+
+      {errors.length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Controlla la formazione</AlertTitle>
+          <AlertDescription>
+            <ul className="list-disc pl-5 text-sm">
+              {errors.map((e) => (
+                <li key={e}>{e}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <DndContext
         sensors={sensors}
@@ -459,7 +502,10 @@ export function LineupEditor({
         </DragOverlay>
       </DndContext>
 
-      <Button onClick={onSave} disabled={mutation.isPending}>
+      <Button
+        onClick={onSave}
+        disabled={mutation.isPending || errors.length > 0}
+      >
         <Save className="mr-2 h-4 w-4" />
         {mutation.isPending ? "Salvataggio..." : "Salva formazione"}
       </Button>
