@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { COMPETITIONS, seasonFromDate } from "@/lib/team";
 
 const formSchema = z.object({
   opponent: z.string().min(1, "L'avversario è obbligatorio"),
   match_date: z.string().min(1, "La data è obbligatoria"),
   location: z.string().optional(),
   home_or_away: z.enum(["home", "away"]),
+  season: z.string().optional(),
+  competition: z.string().optional(),
   score_team: z.coerce.number().int().min(0).optional().nullable(),
   score_opponent: z.coerce.number().int().min(0).optional().nullable(),
   formation: z.string().optional(),
@@ -40,6 +43,8 @@ export function MatchForm({
       match_date: "",
       location: "",
       home_or_away: "home",
+      season: "",
+      competition: "Campionato",
       score_team: null,
       score_opponent: null,
       formation: "",
@@ -49,6 +54,7 @@ export function MatchForm({
   });
 
   const errors = form.formState.errors;
+  const matchDate = form.watch("match_date");
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -83,6 +89,34 @@ export function MatchForm({
           >
             <option value="home">Casa</option>
             <option value="away">Trasferta</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="season">Stagione</Label>
+          <Input
+            id="season"
+            placeholder={seasonFromDate(matchDate || new Date()) || "2025/2026"}
+            {...form.register("season")}
+          />
+          <p className="text-xs text-muted-foreground">
+            Se vuoto viene calcolata dalla data della partita.
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="competition">Competizione</Label>
+          <select
+            id="competition"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            {...form.register("competition")}
+          >
+            {COMPETITIONS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </div>
       </div>
