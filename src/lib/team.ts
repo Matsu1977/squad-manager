@@ -62,6 +62,22 @@ export type Formation = (typeof FORMATIONS)[number];
 export const PREFERRED_FEET = ["Destro", "Sinistro", "Ambidestro"] as const;
 export type PreferredFoot = (typeof PREFERRED_FEET)[number];
 
+export const COMPETITIONS = [
+  "Campionato",
+  "Coppa",
+  "Amichevole",
+  "Torneo",
+] as const;
+export type Competition = (typeof COMPETITIONS)[number];
+
+/** Stagione calcistica (luglio-giugno) a partire da una data ISO. */
+export function seasonFromDate(date: string | Date): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  return d.getMonth() >= 6 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
+}
+
 export const RATING_FIELDS = [
   { key: "rating_pace", label: "Velocità" },
   { key: "rating_shooting", label: "Tiro" },

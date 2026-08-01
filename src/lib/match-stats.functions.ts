@@ -144,6 +144,27 @@ export const matchStatsQueryOptions = (matchId: string) =>
     queryFn: () => getMatchStats({ data: { match_id: matchId } }),
   });
 
+export const getStatRows = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data, error } = await supabaseAdmin
+      .from("match_stats")
+      .select(
+        "match_id, player_id, goals, assists, yellow_cards, red_cards, minutes_played, players ( id, first_name, last_name, role, jersey_number )"
+      );
+    if (error) throw error;
+    return data ?? [];
+  }
+);
+
+export const statRowsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["stat-rows"],
+    queryFn: () => getStatRows(),
+  });
+
 export const leaderboardQueryOptions = () =>
   queryOptions({
     queryKey: ["leaderboard"],
