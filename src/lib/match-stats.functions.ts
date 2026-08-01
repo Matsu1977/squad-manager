@@ -159,12 +159,6 @@ export const getStatRows = createServerFn({ method: "GET" }).handler(
   }
 );
 
-const unusedMatchStatsQueryOptions = (matchId: string) =>
-  queryOptions({
-    queryKey: ["match-stats", matchId],
-    queryFn: () => getMatchStats({ data: { match_id: matchId } }),
-  });
-
 export const statRowsQueryOptions = () =>
   queryOptions({
     queryKey: ["stat-rows"],
