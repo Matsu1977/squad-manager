@@ -144,6 +144,12 @@ export const matchStatsQueryOptions = (matchId: string) =>
     queryFn: () => getMatchStats({ data: { match_id: matchId } }),
   });
 
+export const statRowsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["stat-rows"],
+    queryFn: () => getStatRows(),
+  });
+
 export const leaderboardQueryOptions = () =>
   queryOptions({
     queryKey: ["leaderboard"],
