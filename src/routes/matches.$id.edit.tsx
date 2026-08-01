@@ -37,6 +37,8 @@ function EditMatchPage() {
     match_date: m.match_date,
     location: m.location ?? "",
     home_or_away: (m.home_or_away as "home" | "away") ?? "home",
+    season: m.season ?? "",
+    competition: m.competition ?? "Campionato",
     score_team: m.score_team,
     score_opponent: m.score_opponent,
     formation: m.formation ?? "",
