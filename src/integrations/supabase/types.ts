@@ -118,6 +118,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          competition: string | null
           created_at: string
           formation: string | null
           home_or_away: string
@@ -128,9 +129,11 @@ export type Database = {
           opponent: string
           score_opponent: number | null
           score_team: number | null
+          season: string | null
           updated_at: string
         }
         Insert: {
+          competition?: string | null
           created_at?: string
           formation?: string | null
           home_or_away?: string
@@ -141,9 +144,11 @@ export type Database = {
           opponent: string
           score_opponent?: number | null
           score_team?: number | null
+          season?: string | null
           updated_at?: string
         }
         Update: {
+          competition?: string | null
           created_at?: string
           formation?: string | null
           home_or_away?: string
@@ -154,6 +159,7 @@ export type Database = {
           opponent?: string
           score_opponent?: number | null
           score_team?: number | null
+          season?: string | null
           updated_at?: string
         }
         Relationships: []
