@@ -1,4 +1,4 @@
-import { type ElementType, useMemo } from "react";
+import { type ElementType, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -22,10 +22,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { playersQueryOptions } from "@/lib/players.functions";
 import { matchesQueryOptions } from "@/lib/matches.functions";
 import { trainingsQueryOptions } from "@/lib/trainings.functions";
-import { leaderboardQueryOptions } from "@/lib/match-stats.functions";
+import { statRowsQueryOptions } from "@/lib/match-stats.functions";
+import { seasonFromDate } from "@/lib/team";
 
 const MONTHS = [
   "Gen",
@@ -71,7 +74,7 @@ export const Route = createFileRoute("/")({
     context.queryClient.ensureQueryData(playersQueryOptions());
     context.queryClient.ensureQueryData(matchesQueryOptions());
     context.queryClient.ensureQueryData(trainingsQueryOptions());
-    context.queryClient.ensureQueryData(leaderboardQueryOptions());
+    context.queryClient.ensureQueryData(statRowsQueryOptions());
   },
   component: DashboardPage,
   errorComponent: DashboardError,
@@ -81,17 +84,66 @@ function DashboardPage() {
   const { data: players } = useSuspenseQuery(playersQueryOptions());
   const { data: matches } = useSuspenseQuery(matchesQueryOptions());
   const { data: trainings } = useSuspenseQuery(trainingsQueryOptions());
-  const { data: leaderboard } = useSuspenseQuery(leaderboardQueryOptions());
+  const { data: statRows } = useSuspenseQuery(statRowsQueryOptions());
+
+  const [season, setSeason] = useState("all");
+  const [competition, setCompetition] = useState("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  const seasons = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          matches.map((m) => m.season ?? seasonFromDate(m.match_date))
+        )
+      )
+        .filter(Boolean)
+        .sort()
+        .reverse(),
+    [matches]
+  );
+
+  const competitions = useMemo(
+    () =>
+      Array.from(new Set(matches.map((m) => m.competition ?? "Campionato")))
+        .filter(Boolean)
+        .sort(),
+    [matches]
+  );
+
+  const inRange = (date: string) =>
+    (!from || date >= from) && (!to || date <= to);
+
+  const filteredMatches = useMemo(
+    () =>
+      matches.filter((m) => {
+        const s = m.season ?? seasonFromDate(m.match_date);
+        const c = m.competition ?? "Campionato";
+        if (season !== "all" && s !== season) return false;
+        if (competition !== "all" && c !== competition) return false;
+        return inRange(m.match_date);
+      }),
+    [matches, season, competition, from, to]
+  );
+
+  const filteredTrainings = useMemo(
+    () => trainings.filter((t) => inRange(t.session_date)),
+    [trainings, from, to]
+  );
+
+  const hasFilters =
+    season !== "all" || competition !== "all" || from !== "" || to !== "";
 
   const total = players.length;
   const now = Date.now();
 
   const played = useMemo(
     () =>
-      matches.filter(
+      filteredMatches.filter(
         (m) => m.score_team != null && m.score_opponent != null
       ),
-    [matches]
+    [filteredMatches]
   );
   const wins = played.filter((m) => m.score_team! > m.score_opponent!).length;
   const draws = played.filter((m) => m.score_team! === m.score_opponent!).length;
@@ -104,25 +156,25 @@ function DashboardPage() {
 
   const nextMatch = useMemo(
     () =>
-      [...matches]
+      [...filteredMatches]
         .filter((m) => new Date(m.match_date).getTime() >= now)
         .sort(
           (a, b) =>
             new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
         )[0] ?? null,
-    [matches, now]
+    [filteredMatches, now]
   );
 
   const nextTraining = useMemo(
     () =>
-      [...trainings]
+      [...filteredTrainings]
         .filter((t) => new Date(t.session_date).getTime() >= now)
         .sort(
           (a, b) =>
             new Date(a.session_date).getTime() -
             new Date(b.session_date).getTime()
         )[0] ?? null,
-    [trainings, now]
+    [filteredTrainings, now]
   );
 
   const lastResults = useMemo(
@@ -146,6 +198,34 @@ function DashboardPage() {
     return buckets;
   }, [played]);
 
+  const leaderboard = useMemo(() => {
+    const ids = new Set(filteredMatches.map((m) => m.id));
+    const map = new Map<
+      string,
+      {
+        player_id: string;
+        first_name: string;
+        last_name: string;
+        goals: number;
+        assists: number;
+      }
+    >();
+    for (const r of statRows) {
+      if (!ids.has(r.match_id) || !r.players) continue;
+      const cur = map.get(r.player_id) ?? {
+        player_id: r.player_id,
+        first_name: r.players.first_name,
+        last_name: r.players.last_name,
+        goals: 0,
+        assists: 0,
+      };
+      cur.goals += r.goals;
+      cur.assists += r.assists;
+      map.set(r.player_id, cur);
+    }
+    return Array.from(map.values());
+  }, [statRows, filteredMatches]);
+
   const topScorers = useMemo(
     () =>
       [...leaderboard]
@@ -161,6 +241,76 @@ function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">Panoramica della tua squadra</p>
       </div>
+
+      <Card>
+        <CardContent className="grid grid-cols-2 gap-3 pt-6 md:grid-cols-5">
+          <div className="space-y-1">
+            <Label htmlFor="f-season">Stagione</Label>
+            <select
+              id="f-season"
+              value={season}
+              onChange={(e) => setSeason(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="all">Tutte</option>
+              {seasons.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="f-comp">Competizione</Label>
+            <select
+              id="f-comp"
+              value={competition}
+              onChange={(e) => setCompetition(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="all">Tutte</option>
+              {competitions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="f-from">Dal</Label>
+            <Input
+              id="f-from"
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="f-to">Al</Label>
+            <Input
+              id="f-to"
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
+          </div>
+          <div className="flex items-end">
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={!hasFilters}
+              onClick={() => {
+                setSeason("all");
+                setCompetition("all");
+                setFrom("");
+                setTo("");
+              }}
+            >
+              Azzera filtri
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard
