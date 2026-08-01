@@ -7,6 +7,8 @@ const matchSchema = z.object({
   match_date: z.string().min(1, "La data è obbligatoria"),
   location: z.string().optional().nullable(),
   home_or_away: z.enum(["home", "away"]),
+  season: z.string().optional().nullable(),
+  competition: z.string().optional().nullable(),
   score_team: z.coerce.number().int().min(0).nullable().optional(),
   score_opponent: z.coerce.number().int().min(0).nullable().optional(),
   formation: z.string().optional().nullable(),
