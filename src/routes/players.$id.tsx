@@ -195,7 +195,6 @@ function PlayerDetailPage() {
         </Card>
       ) : null}
 
-      <div className="flex gap-2">
       <PlayerSkills playerId={id} />
 
       <div className="flex gap-2">
