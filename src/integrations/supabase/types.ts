@@ -164,6 +164,94 @@ export type Database = {
         }
         Relationships: []
       }
+      player_skill_logs: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          level: number
+          log_date: string
+          skill_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          level: number
+          log_date?: string
+          skill_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          level?: number
+          log_date?: string
+          skill_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_skill_logs_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "player_skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_skills: {
+        Row: {
+          achieved_at: string | null
+          category: string
+          created_at: string
+          current_level: number
+          id: string
+          name: string
+          notes: string | null
+          player_id: string
+          status: string
+          target_level: number | null
+          updated_at: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          category?: string
+          created_at?: string
+          current_level?: number
+          id?: string
+          name: string
+          notes?: string | null
+          player_id: string
+          status?: string
+          target_level?: number | null
+          updated_at?: string
+        }
+        Update: {
+          achieved_at?: string | null
+          category?: string
+          created_at?: string
+          current_level?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          player_id?: string
+          status?: string
+          target_level?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_skills_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           birth_date: string | null
