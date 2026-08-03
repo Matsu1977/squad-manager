@@ -87,3 +87,77 @@ export const RATING_FIELDS = [
   { key: "rating_physical", label: "Fisico" },
 ] as const;
 export type RatingKey = (typeof RATING_FIELDS)[number]["key"];
+
+export const SKILL_STATUSES = [
+  "Da migliorare",
+  "In corso",
+  "Raggiunto",
+] as const;
+export type SkillStatus = (typeof SKILL_STATUSES)[number];
+
+export const SKILL_STATUS_VARIANTS: Record<
+  SkillStatus,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  "Da migliorare": "destructive",
+  "In corso": "secondary",
+  Raggiunto: "default",
+};
+
+export const SKILL_CATEGORIES = [
+  "Tecnica",
+  "Atletica",
+  "Tattica",
+  "Mentale",
+  "Portiere",
+] as const;
+export type SkillCategory = (typeof SKILL_CATEGORIES)[number];
+
+/** Abilità suggerite, raggruppate per categoria. */
+export const SKILL_SUGGESTIONS: Record<SkillCategory, string[]> = {
+  Tecnica: [
+    "Piede destro",
+    "Piede sinistro",
+    "Colpo di testa",
+    "Controllo palla",
+    "Dribbling",
+    "Passaggio corto",
+    "Passaggio lungo",
+    "Cross",
+    "Tiro da fuori",
+    "Calci piazzati",
+    "Rigori",
+  ],
+  Atletica: [
+    "Scatto",
+    "Velocità",
+    "Resistenza",
+    "Forza",
+    "Elevazione",
+    "Agilità",
+    "Recupero",
+  ],
+  Tattica: [
+    "Visione di gioco",
+    "Posizionamento",
+    "Marcatura",
+    "Pressing",
+    "Inserimenti",
+    "Copertura difensiva",
+    "Gioco senza palla",
+  ],
+  Mentale: [
+    "Concentrazione",
+    "Leadership",
+    "Disciplina",
+    "Gestione pressione",
+    "Comunicazione",
+  ],
+  Portiere: [
+    "Riflessi",
+    "Uscite alte",
+    "Presa",
+    "Gioco coi piedi",
+    "Parate sui rigori",
+  ],
+};
