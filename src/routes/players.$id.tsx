@@ -196,6 +196,9 @@ function PlayerDetailPage() {
       ) : null}
 
       <div className="flex gap-2">
+      <PlayerSkills playerId={id} />
+
+      <div className="flex gap-2">
         <Button asChild variant="outline">
           <Link to="/players/$id/edit" params={{ id }}>
             <Pencil className="mr-2 h-4 w-4" /> Modifica
