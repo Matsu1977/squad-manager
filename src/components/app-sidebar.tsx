@@ -7,6 +7,7 @@ import {
   Users,
   BarChart3,
   TrendingUp,
+  BookUser,
 } from "lucide-react";
 
 import {
@@ -27,6 +28,7 @@ const items = [
   { title: "Sviluppo", url: "/development", icon: TrendingUp },
   { title: "Formazioni", url: "/formations", icon: LayoutGrid },
   { title: "Partite", url: "/matches", icon: Shield },
+  { title: "Avversari", url: "/opponents", icon: BookUser },
   { title: "Allenamenti", url: "/trainings", icon: CalendarDays },
   { title: "Statistiche", url: "/stats", icon: BarChart3 },
 ];
