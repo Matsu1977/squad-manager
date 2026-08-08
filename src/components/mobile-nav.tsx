@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BarChart3, CalendarDays, Home, Shield, TrendingUp, Users } from "lucide-react";
+import { BarChart3, BookUser, CalendarDays, Home, Shield, Users } from "lucide-react";
 
 const items = [
   { title: "Home", url: "/", icon: Home },
   { title: "Giocatori", url: "/players", icon: Users },
-  { title: "Sviluppo", url: "/development", icon: TrendingUp },
   { title: "Partite", url: "/matches", icon: Shield },
+  { title: "Avversari", url: "/opponents", icon: BookUser },
   { title: "Allenamenti", url: "/trainings", icon: CalendarDays },
   { title: "Stats", url: "/stats", icon: BarChart3 },
 ];
