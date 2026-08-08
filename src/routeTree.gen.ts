@@ -14,6 +14,7 @@ import { Route as StatsRouteImport } from './routes/stats'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as FormationsRouteImport } from './routes/formations'
+import { Route as DevelopmentRouteImport } from './routes/development'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrainingsIndexRouteImport } from './routes/trainings.index'
 import { Route as PlayersIndexRouteImport } from './routes/players.index'
@@ -52,6 +53,11 @@ const MatchesRoute = MatchesRouteImport.update({
 const FormationsRoute = FormationsRouteImport.update({
   id: '/formations',
   path: '/formations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevelopmentRoute = DevelopmentRouteImport.update({
+  id: '/development',
+  path: '/development',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -127,6 +133,7 @@ const MatchesIdEditRoute = MatchesIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/development': typeof DevelopmentRoute
   '/formations': typeof FormationsRoute
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
@@ -148,6 +155,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/development': typeof DevelopmentRoute
   '/formations': typeof FormationsRoute
   '/stats': typeof StatsRoute
   '/matches/$id': typeof MatchesIdRouteWithChildren
@@ -167,6 +175,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/development': typeof DevelopmentRoute
   '/formations': typeof FormationsRoute
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/development'
     | '/formations'
     | '/matches'
     | '/players'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/development'
     | '/formations'
     | '/stats'
     | '/matches/$id'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/development'
     | '/formations'
     | '/matches'
     | '/players'
@@ -251,6 +263,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevelopmentRoute: typeof DevelopmentRoute
   FormationsRoute: typeof FormationsRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   PlayersRoute: typeof PlayersRouteWithChildren
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/formations'
       fullPath: '/formations'
       preLoaderRoute: typeof FormationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/development': {
+      id: '/development'
+      path: '/development'
+      fullPath: '/development'
+      preLoaderRoute: typeof DevelopmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -482,6 +502,7 @@ const TrainingsRouteWithChildren = TrainingsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevelopmentRoute: DevelopmentRoute,
   FormationsRoute: FormationsRoute,
   MatchesRoute: MatchesRouteWithChildren,
   PlayersRoute: PlayersRouteWithChildren,

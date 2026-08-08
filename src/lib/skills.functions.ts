@@ -124,3 +124,25 @@ export const playerSkillsQueryOptions = (playerId: string) =>
     queryKey: ["player-skills", playerId],
     queryFn: () => getPlayerSkills({ data: { player_id: playerId } }),
   });
+
+export const getAllSkills = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data, error } = await supabaseAdmin
+      .from("player_skills")
+      .select(
+        "*, player_skill_logs(*), players(id, first_name, last_name, role, jersey_number)"
+      )
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  }
+);
+
+export const allSkillsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["all-skills"],
+    queryFn: () => getAllSkills(),
+  });
