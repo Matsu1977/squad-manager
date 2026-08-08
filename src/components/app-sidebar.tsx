@@ -6,6 +6,7 @@ import {
   Shield,
   Users,
   BarChart3,
+  TrendingUp,
 } from "lucide-react";
 
 import {
@@ -23,6 +24,7 @@ import {
 const items = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Giocatori", url: "/players", icon: Users },
+  { title: "Sviluppo", url: "/development", icon: TrendingUp },
   { title: "Formazioni", url: "/formations", icon: LayoutGrid },
   { title: "Partite", url: "/matches", icon: Shield },
   { title: "Allenamenti", url: "/trainings", icon: CalendarDays },
