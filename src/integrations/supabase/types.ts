@@ -164,6 +164,54 @@ export type Database = {
         }
         Relationships: []
       }
+      opponents: {
+        Row: {
+          colors: string | null
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          strengths: string | null
+          updated_at: string
+          usual_formation: string | null
+          venue: string | null
+          weaknesses: string | null
+        }
+        Insert: {
+          colors?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          strengths?: string | null
+          updated_at?: string
+          usual_formation?: string | null
+          venue?: string | null
+          weaknesses?: string | null
+        }
+        Update: {
+          colors?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          strengths?: string | null
+          updated_at?: string
+          usual_formation?: string | null
+          venue?: string | null
+          weaknesses?: string | null
+        }
+        Relationships: []
+      }
       player_skill_logs: {
         Row: {
           comment: string | null
