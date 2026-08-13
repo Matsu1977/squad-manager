@@ -35,6 +35,8 @@ export const Route = createFileRoute("/opponents/$id")({
       context.queryClient.ensureQueryData(playersQueryOptions()),
     ]),
   component: OpponentDetailPage,
+  errorComponent: OpponentNotFound,
+  notFoundComponent: OpponentNotFound,
 });
 
 function OpponentNotFound() {
