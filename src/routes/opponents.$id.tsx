@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeft, Mail, MapPin, Phone, User } from "lucide-react";
@@ -6,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { opponentDetailQueryOptions } from "@/lib/opponents.functions";
+import { playersQueryOptions } from "@/lib/players.functions";
+import { MatchContributionsEditor } from "@/components/match-contributions-editor";
 
 export const Route = createFileRoute("/opponents/$id")({
   head: () => ({
@@ -27,14 +30,35 @@ export const Route = createFileRoute("/opponents/$id")({
     ],
   }),
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(opponentDetailQueryOptions(params.id)),
+    Promise.all([
+      context.queryClient.ensureQueryData(opponentDetailQueryOptions(params.id)),
+      context.queryClient.ensureQueryData(playersQueryOptions()),
+    ]),
   component: OpponentDetailPage,
 });
 
 function OpponentDetailPage() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(opponentDetailQueryOptions(id));
+  const { data: players } = useSuspenseQuery(playersQueryOptions());
   const { opponent, matches, scorers } = data;
+
+  const rowsByMatch = useMemo(() => {
+    const map = new Map<
+      string,
+      { player_id: string; goals: number; assists: number }[]
+    >();
+    for (const s of scorers) {
+      const list = map.get(s.match_id) ?? [];
+      list.push({
+        player_id: s.player_id,
+        goals: s.goals,
+        assists: s.assists,
+      });
+      map.set(s.match_id, list);
+    }
+    return map;
+  }, [scorers]);
 
   const record = matches.reduce(
     (acc, m) => {
