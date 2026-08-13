@@ -21,6 +21,66 @@ type SaveStatsInput = z.infer<typeof saveStatsSchema>;
 const matchIdSchema = z.object({ match_id: z.string().uuid() });
 type MatchIdInput = z.infer<typeof matchIdSchema>;
 
+const contributionSchema = z.object({
+  match_id: z.string().uuid(),
+  player_id: z.string().uuid(),
+  goals: z.coerce.number().int().min(0).max(20),
+  assists: z.coerce.number().int().min(0).max(20),
+});
+type ContributionInput = z.infer<typeof contributionSchema>;
+
+export const setPlayerContribution = createServerFn({ method: "POST" })
+  .validator({
+    parse: (data: ContributionInput) => contributionSchema.parse(data),
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data: existing, error: exErr } = await supabaseAdmin
+      .from("match_stats")
+      .select("*")
+      .eq("match_id", data.match_id)
+      .eq("player_id", data.player_id)
+      .maybeSingle();
+    if (exErr) throw exErr;
+
+    const keepsOtherData =
+      (existing?.yellow_cards ?? 0) > 0 ||
+      (existing?.red_cards ?? 0) > 0 ||
+      (existing?.minutes_played ?? 0) > 0;
+
+    if (data.goals === 0 && data.assists === 0) {
+      if (!existing) return { success: true };
+      if (!keepsOtherData) {
+        const { error } = await supabaseAdmin
+          .from("match_stats")
+          .delete()
+          .eq("id", existing.id);
+        if (error) throw error;
+        return { success: true };
+      }
+    }
+
+    if (existing) {
+      const { error } = await supabaseAdmin
+        .from("match_stats")
+        .update({ goals: data.goals, assists: data.assists })
+        .eq("id", existing.id);
+      if (error) throw error;
+      return { success: true };
+    }
+
+    const { error } = await supabaseAdmin.from("match_stats").insert({
+      match_id: data.match_id,
+      player_id: data.player_id,
+      goals: data.goals,
+      assists: data.assists,
+    });
+    if (error) throw error;
+    return { success: true };
+  });
+
 export const getMatchStats = createServerFn({ method: "GET" })
   .validator({ parse: (data: MatchIdInput) => matchIdSchema.parse(data) })
   .handler(async ({ data }) => {
