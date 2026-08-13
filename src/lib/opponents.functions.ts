@@ -90,8 +90,9 @@ export const getOpponentDetail = createServerFn({ method: "GET" })
       .from("opponents")
       .select("*")
       .eq("id", data.id)
-      .single();
+      .maybeSingle();
     if (error) throw error;
+    if (!opponent) throw new Error("Avversario non trovato");
 
     const { data: allMatches, error: mErr } = await supabaseAdmin
       .from("matches")
