@@ -34,7 +34,7 @@ import {
 } from "@/lib/opponents.functions";
 import { matchesQueryOptions } from "@/lib/matches.functions";
 
-export const Route = createFileRoute("/opponents")({
+export const Route = createFileRoute("/opponents/")({
   head: () => ({
     meta: [
       { title: "Rubrica avversari — Team Manager" },
