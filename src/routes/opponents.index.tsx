@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Mail, MapPin, Pencil, Phone, Plus, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
@@ -225,7 +225,15 @@ function OpponentsPage() {
               <Card key={o.id}>
                 <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
                   <div className="space-y-1">
-                    <CardTitle className="text-base">{o.name}</CardTitle>
+                    <CardTitle className="text-base">
+                      <Link
+                        to="/opponents/$id"
+                        params={{ id: o.id }}
+                        className="hover:underline"
+                      >
+                        {o.name}
+                      </Link>
+                    </CardTitle>
                     <div className="flex flex-wrap gap-1">
                       {o.usual_formation && (
                         <Badge variant="secondary">{o.usual_formation}</Badge>
