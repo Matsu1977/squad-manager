@@ -196,7 +196,7 @@ function OpponentDetailPage() {
               const ga = m.score_opponent ?? 0;
               const outcome =
                 gf > ga ? "Vittoria" : gf === ga ? "Pareggio" : "Sconfitta";
-              const rows = scorers.filter((s) => s.match_id === m.id);
+              const rows = rowsByMatch.get(m.id) ?? [];
               return (
                 <Card key={m.id}>
                   <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0">
@@ -226,19 +226,12 @@ function OpponentDetailPage() {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm">
-                    {rows.length > 0 && (
-                      <p>
-                        <span className="font-medium">Marcatori: </span>
-                        {rows
-                          .map(
-                            (r) =>
-                              `${r.name}${r.goals ? ` ⚽${r.goals}` : ""}${
-                                r.assists ? ` 🅰${r.assists}` : ""
-                              }`
-                          )
-                          .join(" · ")}
-                      </p>
-                    )}
+                    <MatchContributionsEditor
+                      matchId={m.id}
+                      players={players}
+                      initialRows={rows}
+                      invalidateKeys={[["opponents", id, "detail"]]}
+                    />
                     {m.notes && (
                       <p className="text-muted-foreground">
                         <span className="font-medium text-foreground">
