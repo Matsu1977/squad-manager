@@ -79,3 +79,67 @@ export const opponentsQueryOptions = () =>
     queryKey: ["opponents"],
     queryFn: () => getOpponents(),
   });
+
+export const getOpponentDetail = createServerFn({ method: "GET" })
+  .validator({ parse: (data: IdInput) => idSchema.parse(data) })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data: opponent, error } = await supabaseAdmin
+      .from("opponents")
+      .select("*")
+      .eq("id", data.id)
+      .single();
+    if (error) throw error;
+
+    const { data: allMatches, error: mErr } = await supabaseAdmin
+      .from("matches")
+      .select("*")
+      .order("match_date", { ascending: false });
+    if (mErr) throw mErr;
+
+    const key = (opponent.name ?? "").trim().toLowerCase();
+    const matches = (allMatches ?? []).filter(
+      (m) => (m.opponent ?? "").trim().toLowerCase() === key
+    );
+
+    if (matches.length === 0) {
+      return { opponent, matches, scorers: [] as ScorerRow[] };
+    }
+
+    const { data: stats, error: sErr } = await supabaseAdmin
+      .from("match_stats")
+      .select("match_id, goals, assists, players(first_name, last_name)")
+      .in(
+        "match_id",
+        matches.map((m) => m.id)
+      );
+    if (sErr) throw sErr;
+
+    const scorers: ScorerRow[] = (stats ?? [])
+      .filter((s) => (s.goals ?? 0) > 0 || (s.assists ?? 0) > 0)
+      .map((s) => ({
+        match_id: s.match_id,
+        goals: s.goals ?? 0,
+        assists: s.assists ?? 0,
+        name: s.players
+          ? `${s.players.first_name} ${s.players.last_name}`
+          : "—",
+      }));
+
+    return { opponent, matches, scorers };
+  });
+
+export type ScorerRow = {
+  match_id: string;
+  goals: number;
+  assists: number;
+  name: string;
+};
+
+export const opponentDetailQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ["opponents", id, "detail"],
+    queryFn: () => getOpponentDetail({ data: { id } }),
+  });
