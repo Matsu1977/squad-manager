@@ -90,8 +90,9 @@ export const getOpponentDetail = createServerFn({ method: "GET" })
       .from("opponents")
       .select("*")
       .eq("id", data.id)
-      .single();
+      .maybeSingle();
     if (error) throw error;
+    if (!opponent) throw new Error("Avversario non trovato");
 
     const { data: allMatches, error: mErr } = await supabaseAdmin
       .from("matches")
@@ -110,7 +111,9 @@ export const getOpponentDetail = createServerFn({ method: "GET" })
 
     const { data: stats, error: sErr } = await supabaseAdmin
       .from("match_stats")
-      .select("match_id, goals, assists, players(first_name, last_name)")
+      .select(
+        "match_id, player_id, goals, assists, players(first_name, last_name)"
+      )
       .in(
         "match_id",
         matches.map((m) => m.id)
@@ -121,6 +124,7 @@ export const getOpponentDetail = createServerFn({ method: "GET" })
       .filter((s) => (s.goals ?? 0) > 0 || (s.assists ?? 0) > 0)
       .map((s) => ({
         match_id: s.match_id,
+        player_id: s.player_id,
         goals: s.goals ?? 0,
         assists: s.assists ?? 0,
         name: s.players
@@ -133,6 +137,7 @@ export const getOpponentDetail = createServerFn({ method: "GET" })
 
 export type ScorerRow = {
   match_id: string;
+  player_id: string;
   goals: number;
   assists: number;
   name: string;

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeft, Mail, MapPin, Phone, User } from "lucide-react";
@@ -6,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { opponentDetailQueryOptions } from "@/lib/opponents.functions";
+import { playersQueryOptions } from "@/lib/players.functions";
+import { MatchContributionsEditor } from "@/components/match-contributions-editor";
 
 export const Route = createFileRoute("/opponents/$id")({
   head: () => ({
@@ -27,14 +30,50 @@ export const Route = createFileRoute("/opponents/$id")({
     ],
   }),
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(opponentDetailQueryOptions(params.id)),
+    Promise.all([
+      context.queryClient.ensureQueryData(opponentDetailQueryOptions(params.id)),
+      context.queryClient.ensureQueryData(playersQueryOptions()),
+    ]),
   component: OpponentDetailPage,
+  errorComponent: OpponentNotFound,
+  notFoundComponent: OpponentNotFound,
 });
+
+function OpponentNotFound() {
+  return (
+    <div className="space-y-3">
+      <h1 className="text-2xl font-bold tracking-tight">
+        Avversario non trovato
+      </h1>
+      <Button variant="outline" asChild>
+        <Link to="/opponents">Torna alla rubrica</Link>
+      </Button>
+    </div>
+  );
+}
 
 function OpponentDetailPage() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(opponentDetailQueryOptions(id));
+  const { data: players } = useSuspenseQuery(playersQueryOptions());
   const { opponent, matches, scorers } = data;
+
+  const rowsByMatch = useMemo(() => {
+    const map = new Map<
+      string,
+      { player_id: string; goals: number; assists: number }[]
+    >();
+    for (const s of scorers) {
+      const list = map.get(s.match_id) ?? [];
+      list.push({
+        player_id: s.player_id,
+        goals: s.goals,
+        assists: s.assists,
+      });
+      map.set(s.match_id, list);
+    }
+    return map;
+  }, [scorers]);
 
   const record = matches.reduce(
     (acc, m) => {
@@ -172,7 +211,7 @@ function OpponentDetailPage() {
               const ga = m.score_opponent ?? 0;
               const outcome =
                 gf > ga ? "Vittoria" : gf === ga ? "Pareggio" : "Sconfitta";
-              const rows = scorers.filter((s) => s.match_id === m.id);
+              const rows = rowsByMatch.get(m.id) ?? [];
               return (
                 <Card key={m.id}>
                   <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0">
@@ -202,19 +241,12 @@ function OpponentDetailPage() {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm">
-                    {rows.length > 0 && (
-                      <p>
-                        <span className="font-medium">Marcatori: </span>
-                        {rows
-                          .map(
-                            (r) =>
-                              `${r.name}${r.goals ? ` ⚽${r.goals}` : ""}${
-                                r.assists ? ` 🅰${r.assists}` : ""
-                              }`
-                          )
-                          .join(" · ")}
-                      </p>
-                    )}
+                    <MatchContributionsEditor
+                      matchId={m.id}
+                      players={players}
+                      initialRows={rows}
+                      invalidateKeys={[["opponents", id, "detail"]]}
+                    />
                     {m.notes && (
                       <p className="text-muted-foreground">
                         <span className="font-medium text-foreground">
