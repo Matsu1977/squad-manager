@@ -37,6 +37,19 @@ export const Route = createFileRoute("/opponents/$id")({
   component: OpponentDetailPage,
 });
 
+function OpponentNotFound() {
+  return (
+    <div className="space-y-3">
+      <h1 className="text-2xl font-bold tracking-tight">
+        Avversario non trovato
+      </h1>
+      <Button variant="outline" asChild>
+        <Link to="/opponents">Torna alla rubrica</Link>
+      </Button>
+    </div>
+  );
+}
+
 function OpponentDetailPage() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(opponentDetailQueryOptions(id));
