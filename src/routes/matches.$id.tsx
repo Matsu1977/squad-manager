@@ -21,6 +21,8 @@ import { matchQueryOptions, deleteMatch } from "@/lib/matches.functions";
 import { matchStatsQueryOptions } from "@/lib/match-stats.functions";
 import { playersQueryOptions } from "@/lib/players.functions";
 import { MatchStatsEditor } from "@/components/match-stats-editor";
+import { UnavailabilityAlert } from "@/components/unavailability-alert";
+import { unavailabilitiesQueryOptions } from "@/lib/unavailabilities.functions";
 
 export const Route = createFileRoute("/matches/$id")({
   head: () => ({ meta: [{ title: "Dettaglio partita — Team Manager" }] }),
@@ -28,6 +30,7 @@ export const Route = createFileRoute("/matches/$id")({
     context.queryClient.ensureQueryData(matchQueryOptions(params.id));
     context.queryClient.ensureQueryData(matchStatsQueryOptions(params.id));
     context.queryClient.ensureQueryData(playersQueryOptions());
+    context.queryClient.ensureQueryData(unavailabilitiesQueryOptions());
   },
   component: MatchDetail,
 });
