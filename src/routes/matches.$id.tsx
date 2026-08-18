@@ -62,6 +62,8 @@ function MatchDetail() {
         Torna alle partite
       </Button>
 
+      <UnavailabilityAlert date={m.match_date} />
+
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
