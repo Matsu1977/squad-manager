@@ -300,6 +300,50 @@ export type Database = {
           },
         ]
       }
+      player_unavailabilities: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          notes: string | null
+          player_id: string
+          reason: string | null
+          start_date: string
+          type: Database["public"]["Enums"]["unavailability_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          player_id: string
+          reason?: string | null
+          start_date?: string
+          type?: Database["public"]["Enums"]["unavailability_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          player_id?: string
+          reason?: string | null
+          start_date?: string
+          type?: Database["public"]["Enums"]["unavailability_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_unavailabilities_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           birth_date: string | null
@@ -463,6 +507,7 @@ export type Database = {
         | "Allenatore"
       player_status: "Ativo" | "Infortunato" | "Sospeso" | "Inattivo"
       preferred_foot: "Destro" | "Sinistro" | "Ambidestro"
+      unavailability_type: "Infortunio" | "Sospensione" | "Altro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -599,6 +644,7 @@ export const Constants = {
       ],
       player_status: ["Ativo", "Infortunato", "Sospeso", "Inattivo"],
       preferred_foot: ["Destro", "Sinistro", "Ambidestro"],
+      unavailability_type: ["Infortunio", "Sospensione", "Altro"],
     },
   },
 } as const

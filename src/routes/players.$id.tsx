@@ -20,6 +20,8 @@ import {
 } from "@/lib/players.functions";
 import { PlayerSkills } from "@/components/player-skills";
 import { playerSkillsQueryOptions } from "@/lib/skills.functions";
+import { PlayerUnavailabilities } from "@/components/player-unavailabilities";
+import { unavailabilitiesQueryOptions } from "@/lib/unavailabilities.functions";
 import { RATING_FIELDS, ROLE_COLORS, STATUS_VARIANTS } from "@/lib/team";
 
 export const Route = createFileRoute("/players/$id")({
@@ -43,6 +45,7 @@ export const Route = createFileRoute("/players/$id")({
   loader: ({ context, params }) => {
     context.queryClient.ensureQueryData(playerQueryOptions(params.id));
     context.queryClient.ensureQueryData(playerSkillsQueryOptions(params.id));
+    context.queryClient.ensureQueryData(unavailabilitiesQueryOptions());
   },
   component: PlayerDetailPage,
   errorComponent: PlayerDetailError,
@@ -196,6 +199,8 @@ function PlayerDetailPage() {
       ) : null}
 
       <PlayerSkills playerId={id} />
+
+      <PlayerUnavailabilities playerId={id} />
 
       <div className="flex gap-2">
         <Button asChild variant="outline">
