@@ -62,6 +62,37 @@ export type Formation = (typeof FORMATIONS)[number];
 export const PREFERRED_FEET = ["Destro", "Sinistro", "Ambidestro"] as const;
 export type PreferredFoot = (typeof PREFERRED_FEET)[number];
 
+export const UNAVAILABILITY_TYPES = [
+  "Infortunio",
+  "Sospensione",
+  "Altro",
+] as const;
+export type UnavailabilityType = (typeof UNAVAILABILITY_TYPES)[number];
+
+export const UNAVAILABILITY_VARIANTS: Record<
+  UnavailabilityType,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  Infortunio: "destructive",
+  Sospensione: "secondary",
+  Altro: "outline",
+};
+
+/** Vero se il periodo di indisponibilità copre la data indicata (YYYY-MM-DD). */
+export function isUnavailableOn(
+  period: { start_date: string; end_date: string | null },
+  date: string
+): boolean {
+  if (!date) return false;
+  if (date < period.start_date) return false;
+  if (period.end_date && date > period.end_date) return false;
+  return true;
+}
+
+export function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export const COMPETITIONS = [
   "Campionato",
   "Coppa",
