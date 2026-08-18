@@ -13,6 +13,8 @@ import { matchQueryOptions } from "@/lib/matches.functions";
 import { playersQueryOptions } from "@/lib/players.functions";
 import { lineupQueryOptions } from "@/lib/lineups.functions";
 import { LineupEditor } from "@/components/lineup-editor";
+import { UnavailabilityAlert } from "@/components/unavailability-alert";
+import { unavailabilitiesQueryOptions } from "@/lib/unavailabilities.functions";
 
 export const Route = createFileRoute("/matches/$id/lineup")({
   head: () => ({ meta: [{ title: "Formazione partita — Team Manager" }] }),
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/matches/$id/lineup")({
     context.queryClient.ensureQueryData(matchQueryOptions(params.id));
     context.queryClient.ensureQueryData(playersQueryOptions());
     context.queryClient.ensureQueryData(lineupQueryOptions(params.id));
+    context.queryClient.ensureQueryData(unavailabilitiesQueryOptions());
   },
   component: LineupPage,
 });
@@ -41,6 +44,8 @@ function LineupPage() {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Torna alla partita
       </Button>
+
+      <UnavailabilityAlert date={m.match_date} />
 
       <Card>
         <CardHeader>
