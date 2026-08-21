@@ -101,6 +101,11 @@ function PlayerChip({
         <span className="truncate">
           {player.first_name} {player.last_name}
         </span>
+        {unavailableLabel && (
+          <Badge variant="destructive" className="ml-1 text-[10px]">
+            {unavailableLabel}
+          </Badge>
+        )}
       </div>
       {bucket !== "available" && onPositionChange && (
         <Input
