@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save, GripVertical, ArrowRight, ArrowLeft, X } from "lucide-react";
 import { AlertCircle } from "lucide-react";
