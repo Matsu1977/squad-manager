@@ -451,6 +451,15 @@ export function LineupEditor({
   const goalies = starters.filter((p) => p.role === "Portiere").length;
   if (goalies > 1)
     errors.push(`Puoi schierare un solo portiere titolare (attuali: ${goalies}).`);
+  const convokedUnavailable = [...starters, ...subs].filter((p) =>
+    unavailableMap.has(p.id)
+  );
+  if (convokedUnavailable.length > 0)
+    errors.push(
+      `Giocatori indisponibili convocati: ${convokedUnavailable
+        .map((p) => `${p.first_name} ${p.last_name}`)
+        .join(", ")}.`
+    );
 
   return (
     <div className="space-y-4">
