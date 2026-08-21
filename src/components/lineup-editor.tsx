@@ -210,11 +210,13 @@ function Column({
 
 export function LineupEditor({
   matchId,
+  matchDate,
   formation,
   players,
   existing,
 }: {
   matchId: string;
+  matchDate: string;
   formation: string | null;
   players: Player[];
   existing: {
@@ -228,6 +230,21 @@ export function LineupEditor({
     () => players.filter((p) => p.role !== "Allenatore"),
     [players]
   );
+
+  const { data: unavailabilities } = useSuspenseQuery(
+    unavailabilitiesQueryOptions()
+  );
+
+  /** player_id -> etichetta indisponibilità nella data della partita */
+  const unavailableMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of (unavailabilities ?? []) as UnavailabilityRow[]) {
+      if (!row.player_id) continue;
+      if (!isUnavailableOn(row, matchDate)) continue;
+      if (!map.has(row.player_id)) map.set(row.player_id, row.type);
+    }
+    return map;
+  }, [unavailabilities, matchDate]);
 
   const initial = useMemo<Record<string, Entry>>(() => {
     const map: Record<string, Entry> = {};
