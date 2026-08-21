@@ -65,6 +65,7 @@ function LineupPage() {
         <CardContent>
           <LineupEditor
             matchId={m.id}
+            matchDate={m.match_date}
             formation={m.formation ?? null}
             players={players}
             existing={lineup}

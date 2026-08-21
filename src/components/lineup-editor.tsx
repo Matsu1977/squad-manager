@@ -5,7 +5,7 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save, GripVertical, ArrowRight, ArrowLeft, X } from "lucide-react";
+import { Save, GripVertical, ArrowRight, ArrowLeft, X, Wand2 } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 import {
   DndContext,
@@ -351,7 +351,7 @@ export function LineupEditor({
     setRows((prev) => {
       const next: Record<string, Entry> = { ...prev };
       for (const p of roster) {
-        if (next[p.id].bucket === "available") {
+        if (next[p.id].bucket === "available" && !unavailableMap.has(p.id)) {
           next[p.id] = { ...next[p.id], bucket: "subs" };
         }
       }
@@ -539,6 +539,7 @@ export function LineupEditor({
                 player={p}
                 bucket="available"
                 positionLabel=""
+                unavailableLabel={unavailableMap.get(p.id) ?? null}
                 onMove={(t) => move(p.id, t)}
               />
             ))}
@@ -561,6 +562,7 @@ export function LineupEditor({
                 player={p}
                 bucket="starters"
                 positionLabel={rows[p.id].position_label}
+                unavailableLabel={unavailableMap.get(p.id) ?? null}
                 onPositionChange={(v) => setPos(p.id, v)}
                 onMove={(t) => move(p.id, t)}
                 onRemove={() => move(p.id, "available")}
@@ -580,6 +582,7 @@ export function LineupEditor({
                 player={p}
                 bucket="subs"
                 positionLabel={rows[p.id].position_label}
+                unavailableLabel={unavailableMap.get(p.id) ?? null}
                 onPositionChange={(v) => setPos(p.id, v)}
                 onMove={(t) => move(p.id, t)}
                 onRemove={() => move(p.id, "available")}
