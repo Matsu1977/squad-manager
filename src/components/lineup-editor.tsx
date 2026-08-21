@@ -30,9 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FORMATIONS, ROLE_COLORS } from "@/lib/team";
+import { FORMATIONS, ROLE_COLORS, isUnavailableOn } from "@/lib/team";
 import type { PlayerRole } from "@/lib/team";
 import { saveLineup } from "@/lib/lineups.functions";
+import { unavailabilitiesQueryOptions } from "@/lib/unavailabilities.functions";
 
 type Player = {
   id: string;
@@ -40,6 +41,13 @@ type Player = {
   last_name: string;
   jersey_number: number | null;
   role: string;
+};
+
+type UnavailabilityRow = {
+  player_id: string | null;
+  type: string;
+  start_date: string;
+  end_date: string | null;
 };
 
 type Bucket = "available" | "starters" | "subs";
