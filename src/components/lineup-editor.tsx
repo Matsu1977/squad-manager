@@ -59,6 +59,7 @@ function PlayerChip({
   onRemove,
   bucket,
   dragging,
+  unavailableLabel,
 }: {
   player: Player;
   positionLabel: string;
@@ -67,6 +68,7 @@ function PlayerChip({
   onRemove?: () => void;
   bucket: Bucket;
   dragging?: boolean;
+  unavailableLabel?: string | null;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: player.id,
