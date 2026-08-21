@@ -358,6 +358,65 @@ export function LineupEditor({
       return next;
     });
 
+  /** Genera automaticamente i convocati escludendo gli indisponibili. */
+  const autoGenerate = () => {
+    const eligible = roster.filter((p) => !unavailableMap.has(p.id));
+    if (eligible.length === 0) {
+      toast.error("Nessun giocatore disponibile in questa data");
+      return;
+    }
+    const parts = (selectedFormation || "")
+      .split("-")
+      .map((n) => Number(n))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    const need: Record<string, number> = {
+      Portiere: 1,
+      Difensore: parts[0] ?? 4,
+      Centrocampista: parts[1] ?? 4,
+      Attaccante: parts[2] ?? 2,
+    };
+    const pool = [...eligible];
+    const chosen: Player[] = [];
+    for (const role of [
+      "Portiere",
+      "Difensore",
+      "Centrocampista",
+      "Attaccante",
+    ]) {
+      for (let i = 0; i < need[role] && chosen.length < 11; i++) {
+        const idx = pool.findIndex((p) => p.role === role);
+        if (idx === -1) break;
+        chosen.push(pool.splice(idx, 1)[0]);
+      }
+    }
+    while (chosen.length < 11 && pool.length > 0) {
+      chosen.push(pool.shift()!);
+    }
+    const starterIds = new Set(chosen.map((p) => p.id));
+    setRows(() => {
+      const next: Record<string, Entry> = {};
+      for (const p of roster) {
+        const label = starterIds.has(p.id) ? p.role.slice(0, 3).toUpperCase() : "";
+        next[p.id] = {
+          bucket: unavailableMap.has(p.id)
+            ? "available"
+            : starterIds.has(p.id)
+              ? "starters"
+              : "subs",
+          position_label: label,
+        };
+      }
+      return next;
+    });
+    const excluded = roster.length - eligible.length;
+    toast.success(
+      excluded > 0
+        ? `Convocati generati — ${excluded} giocatore${excluded > 1 ? "i" : ""} escluso${excluded > 1 ? "i" : ""} per indisponibilità`
+        : "Convocati generati"
+    );
+  };
+
+
   if (roster.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
