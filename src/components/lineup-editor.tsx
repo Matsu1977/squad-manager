@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save, GripVertical, ArrowRight, ArrowLeft, X } from "lucide-react";
+import { Save, GripVertical, ArrowRight, ArrowLeft, X, Wand2 } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 import {
   DndContext,
@@ -26,9 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FORMATIONS, ROLE_COLORS } from "@/lib/team";
+import { FORMATIONS, ROLE_COLORS, isUnavailableOn } from "@/lib/team";
 import type { PlayerRole } from "@/lib/team";
 import { saveLineup } from "@/lib/lineups.functions";
+import { unavailabilitiesQueryOptions } from "@/lib/unavailabilities.functions";
 
 type Player = {
   id: string;
@@ -36,6 +41,13 @@ type Player = {
   last_name: string;
   jersey_number: number | null;
   role: string;
+};
+
+type UnavailabilityRow = {
+  player_id: string | null;
+  type: string;
+  start_date: string;
+  end_date: string | null;
 };
 
 type Bucket = "available" | "starters" | "subs";
@@ -59,6 +71,7 @@ function PlayerChip({
   onRemove,
   bucket,
   dragging,
+  unavailableLabel,
 }: {
   player: Player;
   positionLabel: string;
@@ -67,6 +80,7 @@ function PlayerChip({
   onRemove?: () => void;
   bucket: Bucket;
   dragging?: boolean;
+  unavailableLabel?: string | null;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: player.id,
@@ -99,6 +113,11 @@ function PlayerChip({
         <span className="truncate">
           {player.first_name} {player.last_name}
         </span>
+        {unavailableLabel && (
+          <Badge variant="destructive" className="ml-1 text-[10px]">
+            {unavailableLabel}
+          </Badge>
+        )}
       </div>
       {bucket !== "available" && onPositionChange && (
         <Input
@@ -203,11 +222,13 @@ function Column({
 
 export function LineupEditor({
   matchId,
+  matchDate,
   formation,
   players,
   existing,
 }: {
   matchId: string;
+  matchDate: string;
   formation: string | null;
   players: Player[];
   existing: {
@@ -221,6 +242,21 @@ export function LineupEditor({
     () => players.filter((p) => p.role !== "Allenatore"),
     [players]
   );
+
+  const { data: unavailabilities } = useSuspenseQuery(
+    unavailabilitiesQueryOptions()
+  );
+
+  /** player_id -> etichetta indisponibilità nella data della partita */
+  const unavailableMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of (unavailabilities ?? []) as UnavailabilityRow[]) {
+      if (!row.player_id) continue;
+      if (!isUnavailableOn(row, matchDate)) continue;
+      if (!map.has(row.player_id)) map.set(row.player_id, row.type);
+    }
+    return map;
+  }, [unavailabilities, matchDate]);
 
   const initial = useMemo<Record<string, Entry>>(() => {
     const map: Record<string, Entry> = {};
@@ -315,12 +351,71 @@ export function LineupEditor({
     setRows((prev) => {
       const next: Record<string, Entry> = { ...prev };
       for (const p of roster) {
-        if (next[p.id].bucket === "available") {
+        if (next[p.id].bucket === "available" && !unavailableMap.has(p.id)) {
           next[p.id] = { ...next[p.id], bucket: "subs" };
         }
       }
       return next;
     });
+
+  /** Genera automaticamente i convocati escludendo gli indisponibili. */
+  const autoGenerate = () => {
+    const eligible = roster.filter((p) => !unavailableMap.has(p.id));
+    if (eligible.length === 0) {
+      toast.error("Nessun giocatore disponibile in questa data");
+      return;
+    }
+    const parts = (selectedFormation || "")
+      .split("-")
+      .map((n) => Number(n))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    const need: Record<string, number> = {
+      Portiere: 1,
+      Difensore: parts[0] ?? 4,
+      Centrocampista: parts[1] ?? 4,
+      Attaccante: parts[2] ?? 2,
+    };
+    const pool = [...eligible];
+    const chosen: Player[] = [];
+    for (const role of [
+      "Portiere",
+      "Difensore",
+      "Centrocampista",
+      "Attaccante",
+    ]) {
+      for (let i = 0; i < need[role] && chosen.length < 11; i++) {
+        const idx = pool.findIndex((p) => p.role === role);
+        if (idx === -1) break;
+        chosen.push(pool.splice(idx, 1)[0]);
+      }
+    }
+    while (chosen.length < 11 && pool.length > 0) {
+      chosen.push(pool.shift()!);
+    }
+    const starterIds = new Set(chosen.map((p) => p.id));
+    setRows(() => {
+      const next: Record<string, Entry> = {};
+      for (const p of roster) {
+        const label = starterIds.has(p.id) ? p.role.slice(0, 3).toUpperCase() : "";
+        next[p.id] = {
+          bucket: unavailableMap.has(p.id)
+            ? "available"
+            : starterIds.has(p.id)
+              ? "starters"
+              : "subs",
+          position_label: label,
+        };
+      }
+      return next;
+    });
+    const excluded = roster.length - eligible.length;
+    toast.success(
+      excluded > 0
+        ? `Convocati generati — ${excluded} giocatore${excluded > 1 ? "i" : ""} escluso${excluded > 1 ? "i" : ""} per indisponibilità`
+        : "Convocati generati"
+    );
+  };
+
 
   if (roster.length === 0) {
     return (
@@ -356,6 +451,15 @@ export function LineupEditor({
   const goalies = starters.filter((p) => p.role === "Portiere").length;
   if (goalies > 1)
     errors.push(`Puoi schierare un solo portiere titolare (attuali: ${goalies}).`);
+  const convokedUnavailable = [...starters, ...subs].filter((p) =>
+    unavailableMap.has(p.id)
+  );
+  if (convokedUnavailable.length > 0)
+    errors.push(
+      `Giocatori indisponibili convocati: ${convokedUnavailable
+        .map((p) => `${p.first_name} ${p.last_name}`)
+        .join(", ")}.`
+    );
 
   return (
     <div className="space-y-4">
@@ -379,7 +483,11 @@ export function LineupEditor({
             </SelectContent>
           </Select>
         </div>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Button size="sm" onClick={autoGenerate}>
+            <Wand2 className="mr-2 h-4 w-4" />
+            Genera convocati
+          </Button>
           <Button variant="outline" size="sm" onClick={allToSubs}>
             Convoca tutti
           </Button>
@@ -431,6 +539,7 @@ export function LineupEditor({
                 player={p}
                 bucket="available"
                 positionLabel=""
+                unavailableLabel={unavailableMap.get(p.id) ?? null}
                 onMove={(t) => move(p.id, t)}
               />
             ))}
@@ -453,6 +562,7 @@ export function LineupEditor({
                 player={p}
                 bucket="starters"
                 positionLabel={rows[p.id].position_label}
+                unavailableLabel={unavailableMap.get(p.id) ?? null}
                 onPositionChange={(v) => setPos(p.id, v)}
                 onMove={(t) => move(p.id, t)}
                 onRemove={() => move(p.id, "available")}
@@ -472,6 +582,7 @@ export function LineupEditor({
                 player={p}
                 bucket="subs"
                 positionLabel={rows[p.id].position_label}
+                unavailableLabel={unavailableMap.get(p.id) ?? null}
                 onPositionChange={(v) => setPos(p.id, v)}
                 onMove={(t) => move(p.id, t)}
                 onRemove={() => move(p.id, "available")}
