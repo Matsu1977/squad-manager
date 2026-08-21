@@ -483,7 +483,11 @@ export function LineupEditor({
             </SelectContent>
           </Select>
         </div>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Button size="sm" onClick={autoGenerate}>
+            <Wand2 className="mr-2 h-4 w-4" />
+            Genera convocati
+          </Button>
           <Button variant="outline" size="sm" onClick={allToSubs}>
             Convoca tutti
           </Button>
